@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import Button from "../components/button";
 import Input from "../components/input";
-import { cls } from "@libs/client/utils";
+import { cls } from "../libs/utils";
 
 interface EnterForm {
   email?: string;
@@ -11,6 +11,7 @@ interface EnterForm {
 }
 
 const Enter: NextPage = () => {
+  const [submitting, setSubmitting] = useState(false);
   const { register, handleSubmit, reset } = useForm<EnterForm>();
   const [method, setMethod] = useState<"email" | "phone">("email");
   const onEmailClick = () => {
@@ -22,7 +23,16 @@ const Enter: NextPage = () => {
     setMethod("phone");
   };
   const onValid = (data: EnterForm) => {
-    console.log(data);
+    setSubmitting(true);
+    fetch("/api/users/enter", {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then(() => {
+      setSubmitting(false);
+    });
   };
   return (
     <div className="mt-16 px-4">
@@ -30,7 +40,7 @@ const Enter: NextPage = () => {
       <div className="mt-12">
         <div className="flex flex-col items-center">
           <h5 className="text-sm text-gray-500 font-medium">Enter using:</h5>
-          <div className="grid  border-b  w-full mt-8 grid-cols-2 ">
+          <div className="grid border-b  w-full mt-8 grid-cols-2 ">
             <button
               className={cls(
                 "pb-4 font-medium text-sm border-b-2",
@@ -82,9 +92,10 @@ const Enter: NextPage = () => {
           ) : null}
           {method === "email" ? <Button text={"Get login link"} /> : null}
           {method === "phone" ? (
-            <Button text={"Get one-time password"} />
+            <Button text={submitting ? "Loading" : "Get one-time password"} />
           ) : null}
         </form>
+
         <div className="mt-8">
           <div className="relative">
             <div className="absolute w-full border-t border-gray-300" />
